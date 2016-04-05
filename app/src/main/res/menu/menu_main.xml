@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:menu="http://schemas.android.com/apk/res-auto">
 
-    <item android:id="@+id/custom"
+    <item android:id="@+id/customItemTouch"
           menu:showAsAction="ifRoom"
           android:title="Custom Item Touch" />
 </menu>

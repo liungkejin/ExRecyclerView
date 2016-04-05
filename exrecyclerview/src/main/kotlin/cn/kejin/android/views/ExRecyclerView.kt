@@ -226,7 +226,7 @@ class ExRecyclerView: RecyclerView {
                 xmlFooter = 0
             }
             footerViews.removeAt(index)
-            wrapper.notifyItemRemoved(index)
+            wrapper.notifyItemRemoved(index+getHeaderSize()+getWrapItemCount())
         }
     }
 
@@ -242,7 +242,7 @@ class ExRecyclerView: RecyclerView {
             }
 
             footerViews.removeAt(index)
-            wrapper.notifyItemRemoved(getHeaderSize() + (wrappedAdapter?.itemCount ?: 0) + index)
+            wrapper.notifyItemRemoved(getHeaderSize() + getWrapItemCount() + index)
         }
     }
 
@@ -565,11 +565,11 @@ class ExRecyclerView: RecyclerView {
         }
 
         override fun isItemViewSwipeEnabled(): Boolean {
-            return itemTouchCallback?.isItemViewSwipeEnabled?:isItemViewSwipeEnabled
+            return itemTouchCallback?.isItemViewSwipeEnabled?:itemViewSwipeEnable
         }
 
         override fun isLongPressDragEnabled(): Boolean {
-            return itemTouchCallback?.isLongPressDragEnabled?:isLongPressDragEnabled
+            return itemTouchCallback?.isLongPressDragEnabled?:longPressDragEnable
         }
 
         override fun canDropOver(recyclerView: RecyclerView?, current: ViewHolder?, target: ViewHolder?): Boolean {
@@ -603,7 +603,8 @@ class ExRecyclerView: RecyclerView {
         }
 
         override fun clearView(recyclerView: RecyclerView?, viewHolder: ViewHolder?) {
-            itemTouchCallback?.clearView(recyclerView, viewHolder)?:defaultClearView(recyclerView, viewHolder)
+            itemTouchCallback?.clearView(recyclerView, viewHolder)
+                    ?:defaultClearView(recyclerView, viewHolder)
         }
 
         /**
@@ -666,7 +667,8 @@ class ExRecyclerView: RecyclerView {
         }
 
         override fun getSwipeThreshold(viewHolder: ViewHolder?): Float {
-            return itemTouchCallback?.getSwipeThreshold(viewHolder)?:super.getSwipeThreshold(viewHolder)
+            return itemTouchCallback?.getSwipeThreshold(viewHolder)
+                    ?:super.getSwipeThreshold(viewHolder)
         }
 
         override fun convertToAbsoluteDirection(flags: Int, layoutDirection: Int): Int {
@@ -683,11 +685,12 @@ class ExRecyclerView: RecyclerView {
             /**
              * 禁止移动header 或者 footer
              */
-            if (viewHolder != null && isHeaderOrFooterPos(viewHolder.adapterPosition)) {
+            if (viewHolder == null || isHeaderOrFooterPos(viewHolder.adapterPosition)) {
                 return makeMovementFlags(0, 0)
             }
 
-            return itemTouchCallback?.getMovementFlags(recyclerView, viewHolder)?:defaultGetMovementFlags(recyclerView, viewHolder)
+            return itemTouchCallback?.getMovementFlags(recyclerView, viewHolder)
+                    ?:defaultGetMovementFlags(recyclerView, viewHolder)
         }
 
         /**
@@ -729,7 +732,8 @@ class ExRecyclerView: RecyclerView {
         }
 
         override fun onSwiped(viewHolder: ViewHolder?, direction: Int) {
-            itemTouchCallback?.onSwiped(viewHolder, direction)?:defaultOnSwiped(viewHolder, direction)
+            itemTouchCallback?.onSwiped(viewHolder, direction)
+                    ?:defaultOnSwiped(viewHolder, direction)
         }
 
         /**
@@ -741,110 +745,4 @@ class ExRecyclerView: RecyclerView {
             }
         }
     }
-//
-//    protected  val itemTouchCallback2 = object : ItemTouchHelper.Callback() {
-//        override fun isItemViewSwipeEnabled(): Boolean {
-//            return itemViewSwipeEnable
-//        }
-//
-//        override fun isLongPressDragEnabled(): Boolean {
-//            return longPressDragEnable
-//        }
-//
-//        override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: ViewHolder?): Int {
-//            var dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
-//            var swipeFlags = ItemTouchHelper.START or ItemTouchHelper.END
-//            if (viewHolder != null && isHeaderOrFooterPos(viewHolder.adapterPosition)) {
-//                dragFlags = 0
-//                swipeFlags = 0
-//            }
-//            else {
-//                when (recyclerView?.layoutManager) {
-//                    is StaggeredGridLayoutManager,
-//                    is GridLayoutManager -> {
-//                        dragFlags = dragFlags or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
-//                        swipeFlags = 0
-//                    }
-//                }
-//            }
-//
-//            return makeMovementFlags(dragFlags, swipeFlags)
-//        }
-//
-//        override fun onMove(recyclerView: RecyclerView?,
-//                            viewHolder: ViewHolder?,
-//                            target: ViewHolder?): Boolean {
-//            if (viewHolder != null && target != null) {
-//                return itemActionListener.onItemMove(
-//                        viewHolder.adapterPosition-getHeaderSize(),
-//                        target.adapterPosition-getHeaderSize())
-//            }
-//
-//            return false
-//        }
-//
-//        override fun onSwiped(viewHolder: ViewHolder?, direction: Int) {
-//            if (viewHolder != null) {
-//                itemActionListener.onItemSwiped(viewHolder.adapterPosition-getHeaderSize())
-//            }
-//        }
-//
-//        override fun onChildDraw(c: Canvas?,
-//                                 recyclerView: RecyclerView?,
-//                                 viewHolder: ViewHolder?,
-//                                 dX: Float,
-//                                 dY: Float,
-//                                 actionState: Int,
-//                                 isCurrentlyActive: Boolean) {
-//            if (viewHolder != null) {
-//                when (actionState) {
-//                    ItemTouchHelper.ACTION_STATE_SWIPE -> {
-//                        val alpha: Float = 1.0f - Math.abs(dX) / viewHolder.itemView.width;
-//                        viewHolder.itemView.alpha = alpha;
-//                        viewHolder.itemView.translationX = dX;
-//                        return;
-//                    }
-//                }
-//            }
-//            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-//        }
-//
-//        override fun clearView(recyclerView: RecyclerView?, viewHolder: ViewHolder?) {
-//            super.clearView(recyclerView, viewHolder)
-//
-//            if (viewHolder != null) {
-//                viewHolder.itemView.alpha = 1.0f
-//                itemActionListener.onItemCleared(
-//                        viewHolder, viewHolder.adapterPosition-getHeaderSize())
-//            }
-//        }
-//
-//        override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
-//            if (viewHolder != null &&
-//                    actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-//                itemActionListener.onItemSelected(
-//                        viewHolder, viewHolder.adapterPosition-getHeaderSize())
-//            }
-//            super.onSelectedChanged(viewHolder, actionState)
-//        }
-//    }
-//
-//    protected val defItemActionListener = object : ItemActionListener {
-//        override fun onItemMove(from: Int, to: Int): Boolean {
-//            return false
-//        }
-//
-//        override fun onItemSwiped(pos: Int) {
-//            //
-//        }
-//
-//        override fun onItemSelected(holder: ViewHolder, pos: Int) {
-//            //
-//        }
-//
-//        override fun onItemCleared(holder: ViewHolder, pos: Int) {
-//            //
-//        }
-//    }
-
 }

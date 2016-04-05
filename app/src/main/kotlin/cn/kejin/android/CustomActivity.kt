@@ -16,7 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import cn.kejin.android.views.ExRecyclerAdapter
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_custom.*
 
 /**
  * Author: Kejin ( Liang Ke Jin )
@@ -32,7 +32,6 @@ class CustomActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_custom)
-
         exRecycler.adapter = adapter
         exRecycler.layoutManager = LinearLayoutManager(this)
         exRecycler.setOnLoadMoreListener {

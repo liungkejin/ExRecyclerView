@@ -13,7 +13,6 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import cn.kejin.android.views.ExRecyclerAdapter
-import cn.kejin.android.views.R
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -54,17 +53,17 @@ class MainActivity : AppCompatActivity() {
 
         val headerCode = exRecycler.addHeader(header)
         val footerCode = exRecycler.addFooter(footer)
-        exRecycler.adapter = adapter
         exRecycler.setOnLoadMoreListener {
             exRecycler.postDelayed(
                     {
-                        adapter.addAll(listOf("A1", "A2", "A3", "A4", "A5", "A6", "A7"));
+                        adapter.addAll(listOf("----", "A1", "A2", "A3", "A4", "A5", "A6", "A7"));
                         exRecycler.endLoadMore();
                     }, 2000)
 
             true
         }
 
+        exRecycler.adapter = adapter
         exRecycler.layoutManager = LinearLayoutManager(this)
 
         exRecycler.enableDragAndSwipe()
@@ -72,23 +71,24 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(this, "Delete Header2 and Footer2 After 3 seconds", Toast.LENGTH_SHORT).show()
         exRecycler.postDelayed({
-            exRecycler.removeHeader(headerCode)
+//            exRecycler.removeHeader(headerCode)
             exRecycler.removeFooter(footerCode)
                                }, 3000)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menu?.findItem(R.id.custom)?.setOnMenuItemClickListener {
-            startActivity(Intent(this, CustomActivity::class.java))
-            true
-        }
-
-        return super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-        menuInflater.inflate(R.menu.menu_main, menu)
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.customItemTouch -> {
+                startActivity(Intent(this, CustomActivity::class.java))
+                return true;
+            }
+        }
+        return super.onContextItemSelected(item)
     }
 
     /**
@@ -100,12 +100,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: VH?, position: Int) {
-            holder?.itemView?.setOnTouchListener { view, motionEvent ->
-                if (MotionEventCompat.getActionMasked(motionEvent) == MotionEvent.ACTION_DOWN) {
-                    exRecycler.itemTouchHelper.startDrag(holder)
-                }
-                false
-            }
             holder?.bindView(data[position], position)
         }
 
@@ -113,6 +107,13 @@ class MainActivity : AppCompatActivity() {
             override fun bindView(model: String, pos: Int) {
                 val text = findView(R.id.text) as TextView
                 text.text = model
+
+                itemView.setOnTouchListener { view, motionEvent ->
+                    if (MotionEventCompat.getActionMasked(motionEvent) == MotionEvent.ACTION_DOWN) {
+                        exRecycler.itemTouchHelper.startDrag(this)
+                    }
+                    false
+                }
             }
         }
     }
