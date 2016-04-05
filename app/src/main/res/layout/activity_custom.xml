@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <cn.kejin.android.views.ExRecyclerView
+        android:id="@+id/exRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:header="@layout/layout_header"
+        app:footer="@layout/layout_footer"/>
+</LinearLayout>
