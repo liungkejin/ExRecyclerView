@@ -94,10 +94,10 @@ interface OnLoadMoreListener {
 ```
 
 | 属性/方法 | 说明 |
-| --------------- |
+| --------- | ------ |
 | `isLoadingMore` | 判断是否正在loading more 的状态, 如果为true, 则表示正在加载更多, ExRecyclerView 不会再回调loadmore 操作 |
 | `loadMoreListener` `setOnLoadMoreListener` | 设置监听 |
-| `endLoadMore()` | 将isLoadingMore 的状态置为 false, 让 ExRecyclerView 继续监听到底回调 loadmore 操作
+| `endLoadMore()` | 将isLoadingMore 的状态置为 false, 让 ExRecyclerView 继续监听到底回调 loadmore 操作 |
 
 ### Drag & Swipe
 
@@ -110,7 +110,7 @@ ExRecyclerView 内部已经实例化了一个 ItemTouchHelper, 并已经进行�
 不过要注意不能移动 header 或者 footer, 还有将ExRecyclerView 的内部变量 itemTouchCallback = null, itemActionListener = null;
 
 | 属性/方法 | 说明 |
-| --------------- |
+| --------- | ------ |
 | `itemTouchHelper` | ExRecyclerView 的内置 ItemTouchHelper |
 | `itemTouchCallback` | 自定义的ItemTouchHelper.Callback |
 | `itemActionListener` | ItemActionListener的实现 |
@@ -127,7 +127,7 @@ ExRecyclerAdapter 实现了一个简单的 ItemActionListener, 并可以控制 D
 ExRecyclerAdapter 实现了一个简单的ItemActionListener
 
 | 属性/方法 | 说明 |
-| --------------- |
+| --------- | ------ |
 | `set(pos, model)` | 改变某一个位置的数据 |
 | `set(Collectoin<Model>)` | 重新设置所有的数据 |
 | `move(from, to)` | 移动一个数据 |
