@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.view.MotionEventCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.GridLayoutManager
@@ -32,12 +33,13 @@ class CustomActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_custom)
+
         exRecycler.adapter = adapter
         exRecycler.layoutManager = LinearLayoutManager(this)
         exRecycler.setOnLoadMoreListener {
             exRecycler.postDelayed(
                     {
-                        adapter.addAll(listOf("A1", "A2", "A3", "A4", "A5", "A6", "A7"));
+                        adapter.addAll(listOf("----", "A1", "A2", "A3", "A4", "A5", "A6", "A7"));
                         exRecycler.endLoadMore();
                     }, 2000)
 
@@ -45,6 +47,12 @@ class CustomActivity : AppCompatActivity() {
         }
 
         exRecycler.itemTouchCallback = CustomItemTouchCallback()
+
+        var items: MutableList<String> = mutableListOf()
+        for (i in 0..10) {
+            items.add(i.toString())
+        }
+        adapter.set(items)
     }
 
     /**
@@ -63,7 +71,10 @@ class CustomActivity : AppCompatActivity() {
             return true
         }
 
-        override fun onMove(recyclerView: RecyclerView?, viewHolder: RecyclerView.ViewHolder?, target: RecyclerView.ViewHolder?): Boolean {
+        override fun onMove(recyclerView: RecyclerView?,
+                viewHolder: RecyclerView.ViewHolder?,
+                target: RecyclerView.ViewHolder?): Boolean {
+
             if (viewHolder != null && target != null) {
                 return adapter.move(getRealPos(viewHolder), getRealPos(target))
             }
@@ -103,9 +114,7 @@ class CustomActivity : AppCompatActivity() {
                 ItemTouchHelper.ACTION_STATE_SWIPE -> {
                     when (viewHolder) {
                         is Adapter.VH -> {
-                            val alpha: Float = 1.0f - Math.abs(dX) / viewHolder.itemView.width;
-                            viewHolder.showLayout.alpha = alpha
-                            viewHolder.showLayout.translationX = dX
+                            viewHolder.onDrawSwipe(dX, Math.abs(dX) / viewHolder.itemView.width)
                         }
                     }
                     return;
@@ -143,47 +152,66 @@ class CustomActivity : AppCompatActivity() {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): VH? {
-            return VH(View.inflate(activity, R.layout.layout_item_custom, parent)!!)
+            return VH(inflateView(R.layout.layout_item_custom, parent)!!)
         }
 
+        /**
+         * View Holder
+         */
         inner class VH(view: View) : RecyclerView.ViewHolder(view) {
             val actionLayout by lazy { itemView.findViewById(R.id.actionLayout) }
             val showLayout by lazy { itemView.findViewById(R.id.showLayout) }
 
             fun bindView(model: String, pos: Int) {
 
+                showLayout.alpha = 1.0f
+                showLayout.translationX = 0f
+                showLayout.visibility = View.VISIBLE
+                showLayout.setBackgroundColor(Color.WHITE)
+
                 val text = itemView.findViewById(R.id.text) as TextView
                 text.text = model
+            }
 
-                itemView.setOnTouchListener { view, motionEvent ->
-                    if (MotionEventCompat.getActionMasked(motionEvent) == MotionEvent.ACTION_DOWN) {
-                        itemTouchHelper.startDrag(this)
-                    }
-                    false
+            fun onDrawSwipe(dX: Float, alpha: Float) {
+                showLayout.translationX = dX
+
+                actionLayout.alpha = alpha
+                if (dX > 0) {
+                    actionLayout.findViewById(R.id.done).visibility = View.VISIBLE
+                    actionLayout.findViewById(R.id.delete).visibility = View.INVISIBLE
+                    actionLayout.setBackgroundColor(Color.GREEN)
+                }
+                else {
+                    actionLayout.findViewById(R.id.done).visibility = View.INVISIBLE
+                    actionLayout.findViewById(R.id.delete).visibility = View.VISIBLE
+                    actionLayout.setBackgroundColor(Color.RED)
                 }
             }
 
+
             fun onSwiped(direction: Int, pos: Int) {
                 when (direction) {
-                    ItemTouchHelper.LEFT -> {
-                        removeAt(pos)
+                    ItemTouchHelper.END -> {
+                        Snackbar.make(exRecycler, "处理完毕", Snackbar.LENGTH_SHORT).show()
                     }
                     else -> {
-                        showLayout.visibility = View.GONE
-
-                        itemView.findViewById(R.id.delete).setOnClickListener { removeAt(pos) }
+                        Snackbar.make(exRecycler, "删除成功", Snackbar.LENGTH_SHORT).show()
                     }
                 }
+                removeAt(pos)
             }
 
             fun onCleared(pos: Int) {
                 showLayout.alpha = 1.0f
+                showLayout.translationX = 0f
                 showLayout.visibility = View.VISIBLE
                 showLayout.setBackgroundColor(Color.WHITE)
             }
 
             fun onSelected(pos: Int) {
-                showLayout.setBackgroundColor(Color.RED)
+                showLayout.translationX = 0f
+                showLayout.setBackgroundColor(Color.BLUE)
             }
         }
     }

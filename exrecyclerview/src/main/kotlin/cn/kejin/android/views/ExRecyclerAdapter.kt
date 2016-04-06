@@ -1,12 +1,14 @@
 package cn.kejin.android.views
 
 import android.app.Activity
+import android.graphics.Canvas
 import android.graphics.Color
+import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.View
 import android.view.ViewGroup
-import cn.kejin.android.views.ItemActionListener
 import java.util.*
 
 /**
@@ -22,6 +24,9 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
 {
     protected var data : MutableList<Model> = mutableListOf()
         private set
+
+    fun inflateView(id : Int, parent: ViewGroup? = null)
+            = activity.layoutInflater.inflate(id, parent, false)
 
     override fun getItemCount() = data.size
 
@@ -150,42 +155,105 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
         }
     }
 
-//    var itemTouchHelper : ItemTouchHelper? = null
+    /********************************** Item Action Listener ***********************************/
 
-    override fun onItemMove(from: Int, to: Int): Boolean {
-        return move(from, to)
+    var longPressDragEnable = false
+    var itemViewSwipeEnable = false
+
+    fun enableDragAndSwipe() {
+        longPressDragEnable = true
+        itemViewSwipeEnable = true
     }
 
-    override fun onItemSwiped(pos: Int) {
-        removeAt(pos)
+    fun disableDragAndSwipe() {
+        longPressDragEnable = false
+        itemViewSwipeEnable = false
     }
 
-    override fun onItemSelected(holder: RecyclerView.ViewHolder, pos: Int) {
-        holder.itemView?.setBackgroundColor(Color.LTGRAY)
+    override fun isItemViewSwipeEnabled(): Boolean
+            = itemViewSwipeEnable
+
+    override fun isLongPressDragEnabled(): Boolean
+            = longPressDragEnable
+
+    override fun onChildDraw(
+            c: Canvas?,
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?,
+            dX: Float,
+            dY: Float,
+            actionState: Int,
+            isCurrentlyActive: Boolean): Boolean {
+        if (viewHolder != null) {
+            when (actionState) {
+                ItemTouchHelper.ACTION_STATE_SWIPE -> {
+                    val alpha: Float = 1.0f - Math.abs(dX) / viewHolder.itemView.width;
+                    viewHolder.itemView.alpha = alpha;
+                    viewHolder.itemView.translationX = dX;
+                }
+            }
+        }
+
+        return false;
     }
 
-    override fun onItemCleared(holder: RecyclerView.ViewHolder, pos: Int) {
-        holder.itemView?.setBackgroundColor(0)
+    override fun clearView(
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?): Boolean {
+        if (viewHolder != null) {
+            viewHolder.itemView.alpha = 1.0f
+            viewHolder.itemView.setBackgroundColor(Color.WHITE)
+        }
+        return false
     }
 
-    fun inflateView(id : Int, parent: ViewGroup? = null)
-            = activity.layoutInflater.inflate(id, parent, false)
+    override fun onSelectedChanged(
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?,
+            actionState: Int): Boolean {
+        if (viewHolder != null &&
+                actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
+            viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
+        }
+        return false
+    }
 
-//    fun startDrag(holder: Holder) {
-//        itemTouchHelper?.startDrag(holder)
-//    }
-//
-//    fun startSwipe(holder: Holder) {
-//        itemTouchHelper?.startSwipe(holder)
-//    }
+    override fun getMovementFlags(
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?): Int {
+        var dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
+        var swipeFlags = ItemTouchHelper.START or ItemTouchHelper.END
 
-//    override fun onBindViewHolder(holder: Holder?, pos: Int) {
-//        if (holder != null) {
-//            if (holder is ExViewHolder<*>) {
-//                holder.bindView(data[pos], pos)
-//            }
-//        }
-//    }
+        when (recyclerView.layoutManager) {
+            is StaggeredGridLayoutManager,
+            is GridLayoutManager -> {
+                dragFlags = dragFlags or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
+                swipeFlags = 0
+            }
+        }
+
+        return makeMovementFlags(dragFlags, swipeFlags)
+    }
+
+    override fun onMove(
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?,
+            target: RecyclerView.ViewHolder?): Boolean {
+        if (viewHolder != null && target != null) {
+            return move(viewHolder.adapterPosition-recyclerView.getHeaderSize(),
+                        target.adapterPosition-recyclerView.getHeaderSize());
+        }
+        return false;
+    }
+
+    override fun onSwiped(
+            recyclerView: ExRecyclerView,
+            viewHolder: RecyclerView.ViewHolder?,
+            direction: Int) {
+        if (viewHolder != null) {
+            removeAt(viewHolder.adapterPosition - recyclerView.getHeaderSize())
+        }
+    }
 
     abstract class ExViewHolder<Model>(itemView: View) : RecyclerView.ViewHolder(itemView)
     {

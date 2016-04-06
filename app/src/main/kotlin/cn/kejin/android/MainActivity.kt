@@ -53,6 +53,13 @@ class MainActivity : AppCompatActivity() {
 
         val headerCode = exRecycler.addHeader(header)
         val footerCode = exRecycler.addFooter(footer)
+
+        exRecycler.adapter = adapter
+        exRecycler.layoutManager = LinearLayoutManager(this)
+
+        exRecycler.itemActionListener = adapter
+        adapter.enableDragAndSwipe()
+
         exRecycler.setOnLoadMoreListener {
             exRecycler.postDelayed(
                     {
@@ -63,15 +70,9 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        exRecycler.adapter = adapter
-        exRecycler.layoutManager = LinearLayoutManager(this)
-
-        exRecycler.enableDragAndSwipe()
-        exRecycler.itemActionListener = adapter
-
         Toast.makeText(this, "Delete Header2 and Footer2 After 3 seconds", Toast.LENGTH_SHORT).show()
         exRecycler.postDelayed({
-//            exRecycler.removeHeader(headerCode)
+            exRecycler.removeHeader(headerCode)
             exRecycler.removeFooter(footerCode)
                                }, 3000)
     }
@@ -107,13 +108,6 @@ class MainActivity : AppCompatActivity() {
             override fun bindView(model: String, pos: Int) {
                 val text = findView(R.id.text) as TextView
                 text.text = model
-
-                itemView.setOnTouchListener { view, motionEvent ->
-                    if (MotionEventCompat.getActionMasked(motionEvent) == MotionEvent.ACTION_DOWN) {
-                        exRecycler.itemTouchHelper.startDrag(this)
-                    }
-                    false
-                }
             }
         }
     }

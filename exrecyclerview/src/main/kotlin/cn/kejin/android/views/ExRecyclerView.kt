@@ -10,7 +10,6 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import cn.kejin.android.views.R
 
 import kotlin.collections.mutableListOf
 
@@ -26,13 +25,11 @@ class ExRecyclerView: RecyclerView {
     /**
      * define in xml layout
      */
-    var xmlHeader = 0
-        private set
+    private var xmlHeader = 0
 
     protected val headerViews: MutableList<View> = mutableListOf()
 
-    var xmlFooter = 0
-        private set
+    private var xmlFooter = 0
 
     protected val footerViews: MutableList<View> = mutableListOf()
 
@@ -134,12 +131,13 @@ class ExRecyclerView: RecyclerView {
      */
     fun removeHeader(code: Int) {
         val index = headerViews.indexOfFirst { it.hashCode() == code }
-        if (index >= 0) {
+        if (index in 0..headerViews.size-1) {
             if (code == xmlHeader) {
                 xmlHeader = 0
             }
 
-            headerViews.removeAt(index)
+            val view = headerViews.removeAt(index)
+            removeFromParent(view)
             wrapper.notifyItemRemoved(index)
         }
     }
@@ -150,12 +148,13 @@ class ExRecyclerView: RecyclerView {
      */
     fun removeHeader(view: View) {
         val index = headerViews.indexOf(view)
-        if (index >= 0) {
+        if (index in 0..headerViews.size-1) {
             if (view.hashCode() == xmlHeader) {
                 xmlHeader = 0
             }
 
             headerViews.removeAt(index)
+            removeFromParent(view)
             wrapper.notifyItemRemoved(index)
         }
     }
@@ -221,11 +220,14 @@ class ExRecyclerView: RecyclerView {
      */
     fun removeFooter(code: Int) {
         val index = footerViews.indexOfFirst { it.hashCode() == code }
-        if (index >= 0) {
+        if (index in 0..footerViews.size-1) {
             if (code == xmlFooter) {
                 xmlFooter = 0
             }
-            footerViews.removeAt(index)
+
+            val view = footerViews.removeAt(index)
+            removeFromParent(view)
+
             wrapper.notifyItemRemoved(index+getHeaderSize()+getWrapItemCount())
         }
     }
@@ -236,12 +238,13 @@ class ExRecyclerView: RecyclerView {
      */
     fun removeFooter(view: View) {
         val index = footerViews.indexOf(view)
-        if (index >= 0) {
+        if (index in 0..footerViews.size-1) {
             if (view.hashCode() == xmlFooter) {
                 xmlFooter = 0
             }
 
             footerViews.removeAt(index)
+            removeFromParent(view)
             wrapper.notifyItemRemoved(getHeaderSize() + getWrapItemCount() + index)
         }
     }
@@ -297,6 +300,17 @@ class ExRecyclerView: RecyclerView {
                 }
                 return oldLookup.getSpanSize(position - getHeaderSize())
             }
+        }
+    }
+
+    /**
+     * 如果 view 是不可回收的, 则在从RecyclerView移除之后要主动将他从他的 parentView中移除掉
+     * 不然会出现移除之后, 还粘在 RecyclerView 中的情况
+     */
+    private fun removeFromParent(view:View) {
+        val pView = view.parent
+        if (pView != null && pView is ViewGroup) {
+            pView.removeView(view)
         }
     }
 
@@ -372,6 +386,17 @@ class ExRecyclerView: RecyclerView {
             }
 
             return wrappedAdapter?.onCreateViewHolder(parent, viewType)
+        }
+
+        override fun onDetachedFromRecyclerView(recyclerView: RecyclerView?) {
+            super.onDetachedFromRecyclerView(recyclerView)
+        }
+
+        override fun onFailedToRecycleView(holder: ViewHolder?): Boolean {
+            if (holder != null) {
+                removeFromParent(holder.itemView)
+            }
+            return super.onFailedToRecycleView(holder)
         }
 
         inner class WrapperViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
@@ -455,7 +480,7 @@ class ExRecyclerView: RecyclerView {
     override fun onScrollStateChanged(state: Int) {
         super.onScrollStateChanged(state)
         val wrapperSize = wrappedAdapter?.itemCount?:0
-        if (!isLoadingMore && loadMoreListener != null && wrapperSize > 0) {
+        if (!isLoadingMore && loadMoreListener != null) {
             val visPos = getVisiblePos()
             if (visPos.second+1 >= getHeaderSize()+wrapperSize) {
                 isLoadingMore = loadMoreListener?.onLoadMore()?:false
@@ -506,7 +531,6 @@ class ExRecyclerView: RecyclerView {
 
     /***************************************** Drag & Swipe Dismiss Function *********************/
 
-    //TODO 支持 swipe dismiss header or footer
     val itemTouchHelper = ItemTouchHelper(ItemTouchCallbackDocker())
 
     /**
@@ -517,129 +541,116 @@ class ExRecyclerView: RecyclerView {
     var itemTouchCallback : ItemTouchHelper.Callback? = null;
 
     /**
-     *  longPressDragEnable
-     *  itemViewSwipeEnable
-     *  itemActionListener
-     *  都只有在没有自定义的 ItemTouchHelper.Callback 的情况下才可用的
-     *  即 itemTouchCallback != null 的情况下
-     *  默认 Drag 和 Swipe 都是关闭的
+     * 默认的监听, 监听主要的事件
      */
-    var longPressDragEnable = false
-    var itemViewSwipeEnable = false
-
-    fun enableDragAndSwipe() {
-        longPressDragEnable = true
-        itemViewSwipeEnable = true
-    }
-
-    fun disableDragAndSwipe() {
-        longPressDragEnable = false
-        itemViewSwipeEnable = false
-    }
-
-    var itemActionListener : ItemActionListener = object : ItemActionListener {
-        override fun onItemMove(from: Int, to: Int): Boolean {
-            return false
-        }
-
-        override fun onItemSwiped(pos: Int) {
-            //
-        }
-
-        override fun onItemSelected(holder: ViewHolder, pos: Int) {
-            //
-        }
-
-        override fun onItemCleared(holder: ViewHolder, pos: Int) {
-            //
-        }
-    }
+    var itemActionListener : ItemActionListener? = null
 
     /**
      * 封装 Callback 保证 header 和 footer 不会被移动
      */
     protected inner class ItemTouchCallbackDocker : ItemTouchHelper.Callback() {
 
-        override fun getMoveThreshold(viewHolder: ViewHolder?): Float {
-            return itemTouchCallback?.getMoveThreshold(viewHolder)?:super.getMoveThreshold(viewHolder)
-        }
-
         override fun isItemViewSwipeEnabled(): Boolean {
-            return itemTouchCallback?.isItemViewSwipeEnabled?:itemViewSwipeEnable
+            return itemTouchCallback?.isItemViewSwipeEnabled
+                    ?:(itemActionListener?.isItemViewSwipeEnabled() ?: super.isItemViewSwipeEnabled())
         }
 
         override fun isLongPressDragEnabled(): Boolean {
-            return itemTouchCallback?.isLongPressDragEnabled?:longPressDragEnable
+            return itemTouchCallback?.isLongPressDragEnabled
+                    ?:(itemActionListener?.isLongPressDragEnabled()) ?: super.isLongPressDragEnabled()
         }
 
-        override fun canDropOver(recyclerView: RecyclerView?, current: ViewHolder?, target: ViewHolder?): Boolean {
-            return itemTouchCallback?.canDropOver(recyclerView, current, target)?:super.canDropOver(recyclerView, current, target)
-        }
-
-        override fun chooseDropTarget(selected: ViewHolder?, dropTargets: MutableList<ViewHolder>?, curX: Int, curY: Int): ViewHolder? {
-            return itemTouchCallback?.chooseDropTarget(selected, dropTargets, curX, curY)?:super.chooseDropTarget(selected, dropTargets, curX, curY)
-        }
-
-        override fun onChildDraw(c: Canvas?, recyclerView: RecyclerView?, viewHolder: ViewHolder?, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-            itemTouchCallback?.onChildDraw(c, recyclerView, viewHolder, dX,dY, actionState, isCurrentlyActive)
-                    ?: defaultChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-        }
-
-        /**
-         * 默认的 swipe 效果
-         */
-        fun defaultChildDraw(c: Canvas?, recyclerView: RecyclerView?, viewHolder: ViewHolder?, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
-            if (viewHolder != null) {
-                when (actionState) {
-                    ItemTouchHelper.ACTION_STATE_SWIPE -> {
-                        val alpha: Float = 1.0f - Math.abs(dX) / viewHolder.itemView.width;
-                        viewHolder.itemView.alpha = alpha;
-                        viewHolder.itemView.translationX = dX;
-                        return;
-                    }
+        override fun onChildDraw(
+                c: Canvas?,
+                recyclerView: RecyclerView?,
+                viewHolder: ViewHolder?,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean) {
+            val callback = itemTouchCallback?.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+            if (callback == null) {
+                val handled = itemActionListener?.onChildDraw(c, this@ExRecyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                if (handled == null || !handled) {
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
                 }
             }
-            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
         }
+
 
         override fun clearView(recyclerView: RecyclerView?, viewHolder: ViewHolder?) {
-            itemTouchCallback?.clearView(recyclerView, viewHolder)
-                    ?:defaultClearView(recyclerView, viewHolder)
-        }
 
-        /**
-         * 默认的clear view
-         */
-        fun defaultClearView(recyclerView: RecyclerView?, viewHolder: ViewHolder?) {
-            super.clearView(recyclerView, viewHolder)
-
-            if (viewHolder != null) {
-                viewHolder.itemView.alpha = 1.0f
-                itemActionListener.onItemCleared(
-                        viewHolder, viewHolder.adapterPosition-getHeaderSize())
+            val callback = itemTouchCallback?.clearView(recyclerView, viewHolder);
+            if (callback == null) {
+                val handled = itemActionListener?.clearView(this@ExRecyclerView, viewHolder)
+                if (handled == null || !handled) {
+                    super.clearView(recyclerView, viewHolder)
+                }
             }
         }
 
-        override fun onMoved(recyclerView: RecyclerView?, viewHolder: ViewHolder?, fromPos: Int, target: ViewHolder?, toPos: Int, x: Int, y: Int) {
+
+        override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
+
+            val callback = itemTouchCallback?.onSelectedChanged(viewHolder, actionState);
+            if (callback == null) {
+                val handled = itemActionListener?.onSelectedChanged(this@ExRecyclerView, viewHolder, actionState)
+                if (handled == null || !handled) {
+                    super.onSelectedChanged(viewHolder, actionState)
+                }
+            }
+        }
+
+
+        override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: ViewHolder?): Int {
+            /**
+             * 禁止移动header 或者 footer
+             */
+            if (viewHolder == null || isHeaderOrFooterPos(viewHolder.adapterPosition)) {
+                return makeMovementFlags(0, 0)
+            }
+
+            return itemTouchCallback?.getMovementFlags(recyclerView, viewHolder)
+                    ?:itemActionListener?.getMovementFlags(this@ExRecyclerView, viewHolder)
+                    ?:makeMovementFlags(0, 0)
+        }
+
+        override fun onMove(recyclerView: RecyclerView?, viewHolder: ViewHolder?, target: ViewHolder?): Boolean {
+            return itemTouchCallback?.onMove(recyclerView, viewHolder, target)
+                    ?:itemActionListener?.onMove(this@ExRecyclerView, viewHolder, target)
+                    ?:false
+        }
+
+        override fun onSwiped(viewHolder: ViewHolder?, direction: Int) {
+            itemTouchCallback?.onSwiped(viewHolder, direction)
+                    ?:itemActionListener?.onSwiped(this@ExRecyclerView, viewHolder, direction)
+        }
+
+
+        override fun onMoved(
+                recyclerView: RecyclerView?,
+                viewHolder: ViewHolder?,
+                fromPos: Int,
+                target: ViewHolder?,
+                toPos: Int,
+                x: Int,
+                y: Int) {
             itemTouchCallback?.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y)
                     ?:super.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y)
         }
 
-        override fun onSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
-            itemTouchCallback?.onSelectedChanged(viewHolder, actionState)
-                    ?:defaultOnSelectedChanged(viewHolder, actionState)
+        override fun getMoveThreshold(viewHolder: ViewHolder?): Float {
+            return itemTouchCallback?.getMoveThreshold(viewHolder)
+                    ?:super.getMoveThreshold(viewHolder)
         }
 
-        /**
-         * default
-         */
-        fun defaultOnSelectedChanged(viewHolder: ViewHolder?, actionState: Int) {
-            if (viewHolder != null &&
-                    actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-                itemActionListener.onItemSelected(
-                        viewHolder, viewHolder.adapterPosition-getHeaderSize())
-            }
-            super.onSelectedChanged(viewHolder, actionState)
+        override fun canDropOver(recyclerView: RecyclerView?, current: ViewHolder?, target: ViewHolder?): Boolean {
+            return itemTouchCallback?.canDropOver(recyclerView, current, target)
+                    ?:super.canDropOver(recyclerView, current, target)
+        }
+
+        override fun chooseDropTarget(selected: ViewHolder?, dropTargets: MutableList<ViewHolder>?, curX: Int, curY: Int): ViewHolder? {
+            return itemTouchCallback?.chooseDropTarget(selected, dropTargets, curX, curY)?:super.chooseDropTarget(selected, dropTargets, curX, curY)
         }
 
         override fun getAnimationDuration(recyclerView: RecyclerView?, animationType: Int, animateDx: Float, animateDy: Float): Long {
@@ -648,7 +659,8 @@ class ExRecyclerView: RecyclerView {
         }
 
         override fun getBoundingBoxMargin(): Int {
-            return itemTouchCallback?.boundingBoxMargin?:super.getBoundingBoxMargin()
+            return itemTouchCallback?.boundingBoxMargin
+                    ?:super.getBoundingBoxMargin()
         }
 
         override fun onChildDrawOver(c: Canvas?, recyclerView: RecyclerView?, viewHolder: ViewHolder?, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
@@ -679,70 +691,6 @@ class ExRecyclerView: RecyclerView {
         override fun getSwipeVelocityThreshold(defaultValue: Float): Float {
             return itemTouchCallback?.getSwipeVelocityThreshold(defaultValue)
                     ?:super.getSwipeVelocityThreshold(defaultValue)
-        }
-
-        override fun getMovementFlags(recyclerView: RecyclerView?, viewHolder: ViewHolder?): Int {
-            /**
-             * 禁止移动header 或者 footer
-             */
-            if (viewHolder == null || isHeaderOrFooterPos(viewHolder.adapterPosition)) {
-                return makeMovementFlags(0, 0)
-            }
-
-            return itemTouchCallback?.getMovementFlags(recyclerView, viewHolder)
-                    ?:defaultGetMovementFlags(recyclerView, viewHolder)
-        }
-
-        /**
-         * 默认Drag 和 swipe的移动flags
-         */
-        fun defaultGetMovementFlags(recyclerView: RecyclerView?, viewHolder: ViewHolder?): Int {
-            var dragFlags = ItemTouchHelper.UP or ItemTouchHelper.DOWN
-            var swipeFlags = ItemTouchHelper.START or ItemTouchHelper.END
-
-            when (recyclerView?.layoutManager) {
-                is StaggeredGridLayoutManager,
-                is GridLayoutManager -> {
-                    dragFlags = dragFlags or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
-                    swipeFlags = 0
-                }
-            }
-
-            return makeMovementFlags(dragFlags, swipeFlags)
-        }
-
-        override fun onMove(recyclerView: RecyclerView?, viewHolder: ViewHolder?, target: ViewHolder?): Boolean {
-            return itemTouchCallback?.onMove(recyclerView, viewHolder, target)
-                    ?:defaultOnMove(recyclerView, viewHolder, target);
-        }
-
-        /**
-         * 默认的move交给 ItemActionListener
-         */
-        fun defaultOnMove(recyclerView: RecyclerView?,
-                          viewHolder: ViewHolder?,
-                          target: ViewHolder?): Boolean {
-            if (viewHolder != null && target != null) {
-                return itemActionListener.onItemMove(
-                        viewHolder.adapterPosition-getHeaderSize(),
-                        target.adapterPosition-getHeaderSize())
-            }
-
-            return false
-        }
-
-        override fun onSwiped(viewHolder: ViewHolder?, direction: Int) {
-            itemTouchCallback?.onSwiped(viewHolder, direction)
-                    ?:defaultOnSwiped(viewHolder, direction)
-        }
-
-        /**
-         * 默认交给 ItemActionListener 处理
-         */
-        fun defaultOnSwiped(viewHolder: ViewHolder?, direction: Int) {
-            if (viewHolder != null) {
-                itemActionListener.onItemSwiped(viewHolder.adapterPosition-getHeaderSize())
-            }
         }
     }
 }

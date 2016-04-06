@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/ExAndroidViews.iml" filepath="$PROJECT_DIR$/ExAndroidViews.iml" />
       <module fileurl="file://$PROJECT_DIR$/ExRecyclerView.iml" filepath="$PROJECT_DIR$/ExRecyclerView.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/exrecyclerview/exrecyclerview.iml" filepath="$PROJECT_DIR$/exrecyclerview/exrecyclerview.iml" />
