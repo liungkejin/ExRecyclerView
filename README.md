@@ -1,4 +1,4 @@
-# ExRecyclerView
+## ExRecyclerView
 *使用 Kotlin 编写, 可以添加 Header 和 Footer, 监听 Load More , 支持 Drag 和 Swipe Item*
 
 ![demo](./pic/exrecyclerview-demo.gif)
@@ -16,8 +16,7 @@ ExRecyclerView一共实现了3个功能:
 3. 支持 Drag 和 Swipe 拖动 item 或者 swipe 删除 item (可以自定义拖动,滑动的样式)
 
 ExRecyclerAdapter 是一个内置了 List 集合的 RecyclerAdapter,
-每次改变数据都会主动进行相应的notify(也可以主动不进行 notify) , 另外 ExRecyclerAdapter 也实现了一个简单的
-ItemActionListener!
+每次改变数据都会主动进行相应的notify(也可以主动不进行 notify)
 
 ## ExRecyclerView
 
@@ -66,7 +65,7 @@ exRecycler.itemTouchHelper = customItemTouchHelper
 | `removeHeader(view)` `removeHeader(hashcode)` | 根据 view 或者他的 hashcode 移除掉这个 header |
 | | |
 | `getFooterSize()` | footer size |
-| `hasFooter(view)` | 判断是否由此footer |
+| `hasFooter(view)` | 判断是否有此footer |
 | `addFooter(view)` | 加入一个 footer, 并返回它的 hashcode, 这个根据这个 hashcode 获取或者删除这个footer |
 | `getFooter(hashcode)`  | 根据 view 的 hashcode 找到这个footer |
 | `removeFooter(view)` `removeFooter(hashcode)` | 根据 view 或者他的 hashcode 移除掉这个 footer |
@@ -117,8 +116,33 @@ ExRecyclerView 内部已经实例化了一个 ItemTouchHelper, 并已经进行�
 | `itemActionListener` | ItemActionListener的实现 |
 
 
-#### ItemActionListener
+### ItemActionListener
 
 ItemActionListener 其实只是把 ItemTouchHelper.Callback 的主要的方法抽离了出来, 方便实现,
 ExRecyclerAdapter 实现了一个简单的 ItemActionListener, 并可以控制 Drag 或者 Swipe 是否可用
+
+
+## ExRecyclerAdapter
+
+ExRecyclerAdapter 实现了一个简单的ItemActionListener
+
+| 属性/方法 | 说明 |
+| --------------- |
+| `set(pos, model)` | 改变某一个位置的数据 |
+| `set(Collectoin<Model>)` | 重新设置所有的数据 |
+| `move(from, to)` | 移动一个数据 |
+| `add(index, model)` | 在index位置加入一个数据 |
+| `add(model)` | 追加一个数据 |
+| `addAll(Collectoin<Model>)` | 追加一个集合数据 |
+| `removeAt(index)` | 移除一个指定的数据 |
+| `remove(model)` | 移除这个 model数据, 如果有多个, 只会移除第一个 |
+| `removeAll(model)` | 移除所有的指定数据 |
+| `clear()` | 清除所有的数据 |
+| | |
+| `longPressDragEnable` | 是否可用长按拖动 |
+| `itemViewSwipeEnable` | 是否滑动可用 |
+| `enableDragAndSwipe()` | 使两个都可用 |
+| `disableDragAndSwipe()` | 禁用 drag 和 swipe |
+
+所有的数据操作方法都有一个 notify 参数, 默认为 true, 且如果成功操作数据, 返回 true
 

@@ -3,6 +3,7 @@ package cn.kejin.android.views
 import android.app.Activity
 import android.graphics.Canvas
 import android.graphics.Color
+import android.support.v7.widget.CardView
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
@@ -74,10 +75,24 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
      */
     fun move(from: Int, to: Int, notify: Boolean=true): Boolean {
         if (from != to && isValidPosition(from) && isValidPosition(to)) {
-            Collections.swap(data, from, to)
-            if (notify) {
-                notifyItemMoved(from, to)
+
+            if (from > to) {
+                for (i in from downTo to+1) {
+                    Collections.swap(data, i, i-1)
+                    if (notify) {
+                        notifyItemMoved(i, i-1)
+                    }
+                }
             }
+            else if (from < to) {
+                for (i in from..to-1) {
+                    Collections.swap(data, i, i+1)
+                    if (notify) {
+                        notifyItemMoved(i, i+1)
+                    }
+                }
+            }
+
             return true;
         }
         return false
@@ -146,6 +161,24 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
     }
 
     /**
+     * 移除所有的指定数据
+     */
+    fun removeAll(model: Model, notify: Boolean=true): Boolean {
+        var flag = false
+        var index = data.indexOf(model)
+        while (isValidPosition(index)) {
+            flag = true
+            data.removeAt(index)
+            if (notify) {
+                notifyItemRemoved(index)
+            }
+            index = data.indexOf(model)
+        }
+
+        return flag
+    }
+
+    /**
      * 清除所有的数据
      */
     fun clear(notify: Boolean=true) {
@@ -202,7 +235,13 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
             viewHolder: RecyclerView.ViewHolder?): Boolean {
         if (viewHolder != null) {
             viewHolder.itemView.alpha = 1.0f
-            viewHolder.itemView.setBackgroundColor(Color.WHITE)
+//            这里itemView如果是一个CardView, 在 v19 的机器上会出 ClassCastException
+//            需要使用 setCardBackgroundColor()
+//            if (viewHolder.itemView is CardView) {
+//                (viewHolder.itemView as CardView).setCardBackgroundColor(Color.WHITE)
+//            }
+//            CardView(activity).setCardBackgroundColor(Color.WHITE)
+//            viewHolder.itemView.setBackgroundColor(Color.WHITE)
         }
         return false
     }
@@ -213,7 +252,10 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
             actionState: Int): Boolean {
         if (viewHolder != null &&
                 actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-            viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
+//            if (viewHolder.itemView is CardView) {
+//                (viewHolder.itemView as CardView).setCardBackgroundColor(Color.LTGRAY)
+//            }
+//            viewHolder.itemView.setBackgroundColor(Color.LTGRAY)
         }
         return false
     }
@@ -240,8 +282,10 @@ abstract class ExRecyclerAdapter<Model, Holder: RecyclerView.ViewHolder>(val act
             viewHolder: RecyclerView.ViewHolder?,
             target: RecyclerView.ViewHolder?): Boolean {
         if (viewHolder != null && target != null) {
-            return move(viewHolder.adapterPosition-recyclerView.getHeaderSize(),
-                        target.adapterPosition-recyclerView.getHeaderSize());
+            val from = viewHolder.adapterPosition-recyclerView.getHeaderSize()
+            val to = target.adapterPosition-recyclerView.getHeaderSize()
+
+            return move(from, to)
         }
         return false;
     }
