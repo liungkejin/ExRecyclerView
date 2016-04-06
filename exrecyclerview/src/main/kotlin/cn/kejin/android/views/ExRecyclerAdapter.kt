@@ -2,8 +2,6 @@ package cn.kejin.android.views
 
 import android.app.Activity
 import android.graphics.Canvas
-import android.graphics.Color
-import android.support.v7.widget.CardView
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
