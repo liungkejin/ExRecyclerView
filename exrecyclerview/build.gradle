@@ -1,5 +1,11 @@
 apply plugin: 'com.android.library'
+
 apply plugin: 'kotlin-android'
+//apply plugin: 'com.jfrog.bintray'
+//apply plugin: "com.jfrog.artifactory"
+//apply plugin: 'maven-publish'
+//apply plugin: 'org.jetbrains.dokka'
+
 
 android {
     compileSdkVersion 23
@@ -24,18 +30,54 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
     compile 'com.android.support:recyclerview-v7:23.2.1'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
+
+
 buildscript {
     ext.kotlin_version = '1.0.1-2'
+    ext.dokka_version = '0.9.7'
     repositories {
         mavenCentral()
+        jcenter()
     }
+
     dependencies {
+        /**
+         * for kotlin
+         */
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // 如果需要用到 Extensions 就注开
+//        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
+
+        /**
+         * dokka for kotlin
+         */
+//        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
+
+        /**
+         * for jfrog
+         */
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
     }
 }
 repositories {
     mavenCentral()
+    jcenter()
 }
+
+/***
+ * ************************************************************
+ */
+
+//task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+//    outputFormat = 'javadoc'
+//    outputDirectory = "$buildDir/javadoc"
+//}
+//
+
+apply from: 'kotlin-bintray.gradle'
+
