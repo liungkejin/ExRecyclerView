@@ -1,11 +1,6 @@
 apply plugin: 'com.android.library'
 
 apply plugin: 'kotlin-android'
-//apply plugin: 'com.jfrog.bintray'
-//apply plugin: "com.jfrog.artifactory"
-//apply plugin: 'maven-publish'
-//apply plugin: 'org.jetbrains.dokka'
-
 
 android {
     compileSdkVersion 23
@@ -35,7 +30,6 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
-
 buildscript {
     ext.kotlin_version = '1.0.1-2'
     ext.dokka_version = '0.9.7'
@@ -53,31 +47,16 @@ buildscript {
 //        classpath "org.jetbrains.kotlin:kotlin-android-extensions:$kotlin_version"
 
         /**
-         * dokka for kotlin
-         */
-//        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
-
-        /**
          * for jfrog
          */
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:3.2.0"
     }
 }
+
 repositories {
     mavenCentral()
     jcenter()
 }
 
-/***
- * ************************************************************
- */
-
-//task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
-//    outputFormat = 'javadoc'
-//    outputDirectory = "$buildDir/javadoc"
-//}
-//
-
 apply from: 'kotlin-bintray.gradle'
-

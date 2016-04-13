@@ -1,4 +1,3 @@
-
 group = PROJ_GROUP
 version = PROJ_VERSION
 project.archivesBaseName = PROJ_ARTIFACTID
@@ -8,33 +7,43 @@ apply plugin: "com.jfrog.artifactory"
 apply plugin: 'maven-publish'
 
 
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+//"java -Djava.ext.dirs=. -jar dokka-fatjar.jar exrecyclerview/src/main/kotlin/ -format javadoc -output exrecyclerview/build/doc"
+task dokkaJavadoc(type: org.gradle.api.tasks.Exec) {
+    workingDir '.'
+    println "WorkingDir: $workingDir"
+    ext.toolJarPath = "$workingDir"
+    ext.dokkaJarPath = "$workingDir"+File.separator+"dokka-fatjar.jar"
+    ext.sourceDirs = "$workingDir"+File.separator+"src"+File.separator+"main"
+    ext.outputFormat = 'javadoc'
+    ext.outputDirectory = "$buildDir" + File.separator+ "javadoc"
+
+    /**
+     *
+     * 这里输出格式可以为: html , markdown, jekyll, javadoc
+     * 如果是 javadoc 格式, 他会用到 javadoc 的库,
+     * 如果你的 PATH 没有包含 JDK x.x.x/lib 路径的话, 就会报 'java.lang.ClassNotFoundException: com.sun.javadoc.DocErrorReporter' 异常
+     * 所以需要你主动将这个路径加进来, 或者将 JDK x.x.x/lib/tools.jar 文件拷贝出来, 下面这个命令我就是拷贝到了当前目录
+     *
+     * dokka-fatjar.jar 这个jar就是从 dokka 项目上下载下来的
+     */
+    commandLine "cmd" , "/c", "java -Djava.ext.dirs=$toolJarPath -jar $dokkaJarPath $sourceDirs -format $outputFormat -output $outputDirectory"
+
+    /**
+     * 如果你是 Linux 系统, 就用这个
+     */
+//    commandLine "java -Djava.ext.dirs=$toolJarPath -jar $dokkaJarPath $sourceDirs -format $outputFormat -output $outputDirectory"
+
 }
 
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
+task kotlinDocJar(type: Jar, dependsOn: dokkaJavadoc) {
     classifier = 'javadoc'
-    from javadoc.destinationDir
+    from dokkaJavadoc.outputDirectory
 }
 
-javadoc {
-    options{
-        encoding "UTF-8"
-        charSet 'UTF-8'
-        author true
-        version true
-        links "http://docs.oracle.com/javase/7/docs/api"
-        title "$PROJ_NAME $PROJ_VERSION"
-    }
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from android.sourceSets.main.java.srcDirs
 }
-
 
 def pomConfig = {
     licenses {
@@ -55,10 +64,10 @@ def pomConfig = {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            artifactId PROJ_ARTIFACTID
-            artifact javadocJar
-            artifact sourcesJar
+        mavenKotlin(MavenPublication) {
+            artifact kotlinDocJar
+
+            artifact sourceJar
 
             pom.withXml {
                 def root = asNode()
@@ -80,7 +89,7 @@ publishing {
 }
 
 afterEvaluate {
-    publishing.publications.mavenJava.artifact(bundleRelease)
+    publishing.publications.mavenKotlin.artifact(bundleRelease)
 }
 
 bintray {
@@ -89,7 +98,7 @@ bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
 
-    publications = ['mavenJava']
+    publications = ['mavenKotlin']
     publish = true
 
     pkg {
@@ -103,6 +112,7 @@ bintray {
         publicDownloadNumbers = true
     }
 }
+
 
 artifactory {
     contextUrl = 'http://oss.jfrog.org/artifactory'
@@ -120,7 +130,7 @@ artifactory {
         }
         defaults {
             //这里的名字和上面红色的名字一致即可，会将其包含的输出上传到jfrog上去
-            publications('mavenJava')
+            publications('mavenKotlin')
             publishArtifacts = true
         }
     }
