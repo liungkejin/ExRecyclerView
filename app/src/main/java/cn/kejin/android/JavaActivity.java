@@ -48,7 +48,7 @@ public class JavaActivity extends AppCompatActivity
 
         exRecyclerView.setAdapter(adapter);
 
-        exRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        exRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         /**
          * 因为 Adapter 实现了一个基本的 ItemActionListener

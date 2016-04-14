@@ -22,6 +22,12 @@ ExRecyclerAdapter 是一个内置了 List 集合的 RecyclerAdapter,
 
 ### Usage
 
+```groovy
+dependencies {
+    compile 'cn.kejin.android.views:exrecyclerview:1.0.2'
+}
+```
+
 ```xml
 <cn.kejin.android.views.ExRecyclerView
     android:id="@+id/exRecycler"
