@@ -10,6 +10,7 @@ import android.support.v7.widget.helper.ItemTouchHelper
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import java.util.*
 
 import kotlin.collections.mutableListOf
 
@@ -27,11 +28,11 @@ class ExRecyclerView: RecyclerView {
      */
     private var xmlHeader = 0
 
-    protected val headerViews: MutableList<View> = mutableListOf()
+    protected val headerViews: ArrayList<View> = ArrayList()
 
     private var xmlFooter = 0
 
-    protected val footerViews: MutableList<View> = mutableListOf()
+    protected val footerViews: ArrayList<View> = ArrayList()
 
     protected val wrapper = AdapterWrapper()
 
@@ -464,6 +465,10 @@ class ExRecyclerView: RecyclerView {
         private set
 
     var loadMoreListener : OnLoadMoreListener? = null
+
+    fun setOnLoadMoreListener(listener: OnLoadMoreListener?) {
+        loadMoreListener = listener
+    }
 
     fun setOnLoadMoreListener(r : ()->Boolean) {
         loadMoreListener = object : OnLoadMoreListener {
