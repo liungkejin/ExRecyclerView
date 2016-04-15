@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <cn.kejin.android.views.ExRecyclerView
+    <cn.kejin.exrecyclerview.ExRecyclerView
         android:id="@+id/exRecycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

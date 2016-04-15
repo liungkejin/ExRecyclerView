@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
-    <cn.kejin.android.views.ExRecyclerView
+    <cn.kejin.exrecyclerview.ExRecyclerView
         android:id="@+id/exRecycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -12,7 +12,7 @@ import android.view.*
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
-import cn.kejin.android.views.ExRecyclerAdapter
+import cn.kejin.exrecyclerview.ExRecyclerAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {

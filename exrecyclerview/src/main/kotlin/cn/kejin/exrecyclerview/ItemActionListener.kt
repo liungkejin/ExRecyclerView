@@ -1,4 +1,4 @@
-package cn.kejin.android.views
+package cn.kejin.exrecyclerview
 
 import android.graphics.Canvas
 import android.support.v7.widget.RecyclerView

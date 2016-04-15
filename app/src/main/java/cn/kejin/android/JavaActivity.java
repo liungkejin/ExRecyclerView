@@ -2,13 +2,10 @@ package cn.kejin.android;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,13 +14,12 @@ import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import cn.kejin.android.views.ExRecyclerAdapter;
-import cn.kejin.android.views.ExRecyclerView;
-import cn.kejin.android.views.ItemActionListener;
+import cn.kejin.exrecyclerview.ExRecyclerAdapter;
+import cn.kejin.exrecyclerview.ExRecyclerView;
+
 
 /**
  * Author: Kejin ( Liang Ke Jin )
@@ -106,7 +102,8 @@ public class JavaActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    public class Adapter extends ExRecyclerAdapter<String, Adapter.ViewHolder> {
+    public class Adapter extends ExRecyclerAdapter<String, Adapter.ViewHolder>
+    {
 
 
         public Adapter(@NotNull Activity activity)

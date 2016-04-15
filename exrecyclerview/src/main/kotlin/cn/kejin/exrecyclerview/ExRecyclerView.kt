@@ -1,4 +1,4 @@
-package cn.kejin.android.views
+package cn.kejin.exrecyclerview
 
 import android.content.Context
 import android.graphics.Canvas
@@ -308,7 +308,7 @@ class ExRecyclerView: RecyclerView {
      * 如果 view 是不可回收的, 则在从RecyclerView移除之后要主动将他从他的 parentView中移除掉
      * 不然会出现移除之后, 还粘在 RecyclerView 中的情况
      */
-    private fun removeFromParent(view:View) {
+    private fun removeFromParent(view: View) {
         val pView = view.parent
         if (pView != null && pView is ViewGroup) {
             pView.removeView(view)
@@ -400,7 +400,7 @@ class ExRecyclerView: RecyclerView {
             return super.onFailedToRecycleView(holder)
         }
 
-        inner class WrapperViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
+        inner class WrapperViewHolder(itemView: View?) : ViewHolder(itemView) {
             init {
                 setIsRecyclable(false)
             }
