@@ -16,7 +16,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import cn.kejin.android.views.ExRecyclerAdapter
+import cn.kejin.exrecyclerview.ExRecyclerAdapter
 import kotlinx.android.synthetic.main.activity_custom.*
 
 /**

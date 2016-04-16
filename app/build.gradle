@@ -33,7 +33,7 @@ dependencies {
     compile 'com.android.support:design:23.2.1'
     compile 'com.android.support:cardview-v7:23.2.1'
 //    compile project(':ExRecyclerView')
-    compile 'cn.kejin.exrecyclerview:ExRecyclerView:1.0.0'
+    compile 'cn.kejin.exrecyclerview:ExRecyclerView:1.0.1'
 }
 buildscript {
     ext.kotlin_version = '1.0.1-2'
