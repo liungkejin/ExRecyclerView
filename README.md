@@ -24,7 +24,7 @@ ExRecyclerAdapter 是一个内置了 List 集合的 RecyclerAdapter,
 
 ```groovy
 dependencies {
-    compile 'cn.kejin.exrecyclerview:exrecyclerview:1.0.1'
+    compile 'cn.kejin.exrecyclerview:exrecyclerview:1.0.2'
 }
 ```
 

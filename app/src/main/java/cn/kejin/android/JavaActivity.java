@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -44,7 +46,8 @@ public class JavaActivity extends AppCompatActivity
 
         exRecyclerView.setAdapter(adapter);
 
-        exRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        exRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+//        exRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL));
 
         /**
          * 因为 Adapter 实现了一个基本的 ItemActionListener

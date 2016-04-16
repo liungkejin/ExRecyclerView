@@ -366,21 +366,14 @@ class ExRecyclerView: RecyclerView {
                 var pos = -(viewType + 1)
                 if (pos >= 0 && pos < getHeaderSize()) {
                     val header = headerViews[pos]
-                    val pView = header.parent
-                    if (pView == parent) {
-                        pView?.removeView(header)
-                    }
+                    removeFromParent(header)
                     return WrapperViewHolder(header)
                 }
 
                 pos -= getHeaderSize() + getWrapItemCount()
                 if (pos >= 0 && pos < getFooterSize()) {
                     val footer = footerViews[pos]
-                    val fView = footer.parent
-                    if (fView == parent) {
-                        fView?.removeView(footer)
-                    }
-
+                    removeFromParent(footer)
                     return WrapperViewHolder(footer)
                 }
                 return null;
@@ -413,6 +406,10 @@ class ExRecyclerView: RecyclerView {
     var lastWrappedAdapterSize = getWrapItemCount()
     private fun onWrappedDataSizeChanged() {
         lastWrappedAdapterSize = getWrapItemCount()
+
+        footerViews.forEach {
+            removeFromParent(it)
+        }
     }
 
     private val adapterDataObserver = object : AdapterDataObserver() {
@@ -515,10 +512,11 @@ class ExRecyclerView: RecyclerView {
             }
 
             is StaggeredGridLayoutManager -> {
-                var firstPos : IntArray = IntArray(2, {0});
+                val spanCount = (layoutManager as StaggeredGridLayoutManager).spanCount
+                var firstPos : IntArray = IntArray(spanCount, {0});
                 (layoutManager as StaggeredGridLayoutManager).findFirstVisibleItemPositions(firstPos)
 
-                var lastPos : IntArray = IntArray(2, {0});
+                var lastPos : IntArray = IntArray(spanCount, {0});
                 (layoutManager as StaggeredGridLayoutManager).findLastVisibleItemPositions(lastPos)
 
                 first = firstPos.min()?:0
